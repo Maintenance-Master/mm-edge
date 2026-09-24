@@ -1,0 +1,52 @@
+{
+  "master": {
+    "slaves": [
+      {
+        "host": "localhost",
+        "port": 5020,
+        "type": "tcp",
+        "method": "socket",
+        "timeout": 35,
+        "byteOrder": "BIG",
+        "wordOrder": "BIG",
+        "retries": true,
+        "retryOnEmpty": true,
+        "retryOnInvalid": true,
+        "pollPeriod": 2000,
+        "unitId": 1,
+        "deviceName": "tank_01",
+        "sendDataOnlyOnChange": true,
+        "connectAttemptTimeMs": 5000,
+        "connectAttemptCount": 5,
+        "waitAfterFailedAttemptsMs": 10000,
+        "attributes": [],
+        "timeseries": [
+          {
+            "tag": "tank_level_cm",
+            "type": "16int",
+            "functionCode": 3,
+            "objectsCount": 1,
+            "address": 0
+          },
+          {
+            "tag": "pump_status",
+            "type": "16int",
+            "functionCode": 3,
+            "objectsCount": 1,
+            "address": 1
+          },
+          {
+            "tag": "pump_speed_pct",
+            "type": "16int",
+            "functionCode": 3,
+            "objectsCount": 1,
+            "address": 2
+          }
+        ],
+        "attributeUpdates": [],
+        "rpc": []
+      }
+    ]
+  },
+  "id": "db71d943-4e20-4af7-adf9-a033d9bf59c8"
+}
