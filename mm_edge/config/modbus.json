@@ -7,42 +7,65 @@
         "type": "tcp",
         "method": "socket",
         "timeout": 35,
+
         "byteOrder": "BIG",
         "wordOrder": "BIG",
+
         "retries": true,
         "retryOnEmpty": true,
         "retryOnInvalid": true,
+
         "pollPeriod": 2000,
         "unitId": 1,
-        "deviceName": "tank_01",
-        "sendDataOnlyOnChange": true,
+
+        "deviceName": "pump-plc-01",
+
+        "sendDataOnlyOnChange": false,
+
         "connectAttemptTimeMs": 5000,
         "connectAttemptCount": 5,
         "waitAfterFailedAttemptsMs": 10000,
+
         "attributes": [],
+
         "timeseries": [
           {
-            "tag": "tank_level_cm",
+            "tag": "motor_temperature",
             "type": "16int",
             "functionCode": 3,
             "objectsCount": 1,
             "address": 0
           },
           {
-            "tag": "pump_status",
+            "tag": "vibration",
             "type": "16int",
             "functionCode": 3,
             "objectsCount": 1,
             "address": 1
           },
           {
-            "tag": "pump_speed_pct",
+            "tag": "rpm",
             "type": "16int",
             "functionCode": 3,
             "objectsCount": 1,
             "address": 2
+          },
+          {
+            "tag": "discharge_pressure",
+            "type": "16int",
+            "functionCode": 3,
+            "objectsCount": 1,
+            "address": 3
+          },
+          {
+            "tag": "running",
+            "type": "bit",
+            "functionCode": 1,
+            "objectsCount": 1,
+            "address": 3
           }
         ],
+
         "attributeUpdates": [],
         "rpc": []
       }

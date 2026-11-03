@@ -1,0 +1,21 @@
+{
+  "organizationId": "dcaf069d-a0e6-4bcd-a55a-3a32e32e0c01",
+  "siteId": "5475a6d7-8d60-4ab8-8fbc-7839e8cdf826",
+  "gatewayId": "2e719ba6-5b9f-4eba-bc26-f71c03b0b2d9",
+
+  "storage": {
+    "type": "sqlite",
+    "data_file_path": "./data/",
+    "messages_ttl_check_in_hours": 1,
+    "messages_ttl_in_days": 7,
+    "max_read_records_count": 100,
+    "writing_batch_size": 100,
+    "size_limit": 100,
+    "max_db_amount": 10,
+    "oversize_check_period": 1
+  },
+
+  "diagnostics": {
+    "storage_log_interval_seconds": 10
+  }
+}

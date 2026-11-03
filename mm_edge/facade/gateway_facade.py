@@ -21,23 +21,14 @@ piece (see comments).
 """
 
 import logging
-from enum import Enum
+from queue import Full
 
-from mm_edge.storage.durable_queue import MMDurableQueue
+from thingsboard_gateway.gateway.constant_enums import Status
+
+from mm_edge.pipeline.incoming_queue import IncomingTelemetryQueue
 
 log = logging.getLogger("mm_edge.facade")
 
-class Status(Enum):
-    """
-    Mirrors the return type of upstream's send_to_storage.
-    TODO: confirm the real Status enum's exact members by locating its
-    class definition in tb_gateway_service.py / a shared constants module
-    — this is listed as an open question in M0_architecture_note.md.
-    Do not assume these three are the complete/correct set.
-    """
-    SUCCESS = "SUCCESS"
-    FAILURE = "FAILURE"
-    FORBIDDEN_DEVICE = "FORBIDDEN_DEVICE"
 
 class MMGatewayFacade:
     """
@@ -48,20 +39,17 @@ class MMGatewayFacade:
     exactly like it's handed the real gateway-service object upstream —
     see modbus_connector.py __init__, self.__gateway = gateway.
     """
-    def __init__(self):
+    def __init__(self, incoming_queue: IncomingTelemetryQueue):
         # In-memory device tracking, mirroring upstream's __connected_devices.
         # Keyed by device_name. Shape of each value is up to you — but
         # whatever add_device stores here, get_devices must be able to
         # read back out correctly.
         self.__connected_devices = {}
+
         self.stopped = False # read by TBRemoteLoggerHandler's background thread
         self.tb_client = None # checked before the handler tries to send anything - handles None gracefully(sleeps, retries)
-        self.__durable_queue = MMDurableQueue(db_path="mm_edge/storage/mm_edge_buffer.db")
 
-        # TODO: wire in MM's own components once they exist, e.g.:
-        #   self.__mapping_resolver = ...   # Section 8 — Mapping & Normalizer
-        #   self.__durable_queue = ...      # Section 9 — local buffer/replay
-        #   self.__mm_cloud_client = ...    # Section 10 — MMCloudClient
+        self.__incoming_queue = incoming_queue
  
     def get_config_path(self):
         return "thingsboard_gateway/config/" # need to replace with MM's own config dir to resolve to
@@ -184,13 +172,20 @@ class MMGatewayFacade:
             # (including its idempotency guard) rather than duplicating it here.
             self.add_device(device_name, {"connector_name": connector_name}, device_type=device_type)
 
-        self.__durable_queue.put(connector_name, connector_id, data)
-        #
-        # A separate background task/thread should drain that queue and
-        # handle the real send + retry/backoff — mirroring your own
-        # prototype's enqueue() / drain_loop() split.
+        try:
+            self.__incoming_queue.put_nowait(connector_name, connector_id, data)
+
+            return Status.SUCCESS
+
+        except Full:
+            log.error(
+                "incoming telemetry queue is full. "
+                "connector=%s device=%s",
+                connector_name,
+                device_name,
+            )
  
-        return Status.SUCCESS
+            return Status.FAILURE
 
     # ------------------------------------------------------------------
     # RPC / downlink — safe no-op for V1 (Edge guide Section 5: RPC to
