@@ -159,7 +159,7 @@ class MMGatewayFacade:
         to make a device "exist." This method must handle first-time
         registration itself for any previously-unseen device_name.
         """
-        log.info(f"send_to_storage called: connector={connector_name}, data={data}")
+        # log.info(f"send_to_storage called: connector={connector_name}, data={data}")
         
         if connector_name is None or data is None:
             return Status.FAILURE

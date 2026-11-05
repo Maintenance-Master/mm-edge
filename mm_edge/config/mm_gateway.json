@@ -1,7 +1,7 @@
 {
   "organizationId": "dcaf069d-a0e6-4bcd-a55a-3a32e32e0c01",
   "siteId": "5475a6d7-8d60-4ab8-8fbc-7839e8cdf826",
-  "gatewayId": "2e719ba6-5b9f-4eba-bc26-f71c03b0b2d9",
+  "gatewayId": "6c42fc5a-aa43-4bb9-8ff2-52a5fc805981",
 
   "storage": {
     "type": "sqlite",
@@ -13,6 +13,17 @@
     "size_limit": 100,
     "max_db_amount": 10,
     "oversize_check_period": 1
+  },
+
+  "cloud": {
+    "host": "localhost",
+    "port": 8883,
+    "caCertificate": "C:/Users/gihan/source/repos/project-mm/mm-edge-mosquitto/certs/ca.crt",
+    "qos": 1,
+    "keepAliveSeconds": 60,
+    "publishTimeoutSeconds": 10,
+    "retryDelaySeconds": 3,
+    "passwordEnvironmentVariable": "MM_MQTT_PASSWORD"
   },
 
   "diagnostics": {

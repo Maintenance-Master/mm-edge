@@ -21,6 +21,8 @@ from mm_edge.telemetry.envelope_factory import MMTelemetryEnvelopeFactory
 from mm_edge.telemetry.serialization import MMTelemetrySerializer
 from mm_edge.diagnostics.storage_diagnostics import StorageDiagnostics
 from mm_edge.storage.event_storage_factory import create_event_storage
+from mm_edge.cloud.mqtt_cloud_client import MqttCloudClient
+from mm_edge.cloud.cloud_publisher_worker import CloudPublisherWorker
 
 os.makedirs("logs", exist_ok=True) # handers won't create the folder themselves
 
@@ -59,6 +61,19 @@ storage_diagnostics = StorageDiagnostics(
     )
 )
 
+cloud_config = gateway_config["cloud"]
+
+cloud_client = MqttCloudClient(
+    config=cloud_config,
+    gateway_identity=gateway_identity
+)
+
+cloud_publisher = CloudPublisherWorker(
+    event_storage=event_storage,
+    cloud_client=cloud_client,
+    retry_delay_seconds=cloud_config.get("retryDelaySeconds", 3)
+)
+
 incoming_queue = IncomingTelemetryQueue()
 
 converter = ConvertedDataConverter()
@@ -81,8 +96,12 @@ connector = AsyncModbusConnector(facade, modbus_config, "modbus")
 
 connector.name = "Modbus Connector"
 
+cloud_client.start()
+cloud_publisher.start()
+
 storage_diagnostics.start()
 telemetry_worker.start()
+
 connector.open()
 
 try:
@@ -98,6 +117,10 @@ finally:
     connector.close()
 
     telemetry_worker.stop()
+
+    cloud_publisher.stop()
+
+    cloud_client.stop()
 
     storage_diagnostics.stop()
 
