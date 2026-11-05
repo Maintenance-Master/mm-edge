@@ -29,8 +29,10 @@ os.makedirs("logs", exist_ok=True) # handers won't create the folder themselves
 with open("mm_edge/config/logging.json") as f:
     logging.config.dictConfig(json.load(f))
 
+logging.getLogger("pymodbus.logging").setLevel(logging.ERROR)
+
 log = logging.getLogger("mm_edge.main")
-log.info("mm_edge started")
+log.info("MM Edge started")
 
 with open("mm_edge/config/mm_gateway.json") as f:
     gateway_config = json.load(f)
@@ -109,10 +111,10 @@ try:
         time.sleep(1)
 
 except KeyboardInterrupt:
-    log.info("Keyboard interruption")
+    log.debug("Keyboard interruption.")
 
 finally:
-    log.info("Stopping mm_edge...")
+    log.info("Stopping MM Edge...")
 
     connector.close()
 
@@ -127,4 +129,4 @@ finally:
     main_stop_event.set()
     event_storage.stop()
 
-    log.info("mm_edge stopped")
+    log.info("MM Edge stopped.")

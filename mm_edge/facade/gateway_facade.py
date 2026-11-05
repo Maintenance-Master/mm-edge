@@ -71,7 +71,7 @@ class MMGatewayFacade:
         meter_id before anything downstream (send_to_storage) can use the
         data meaningfully. See Edge guide Section 8.
         """
-        log.info(f"[FACADE] add_device called: {device_name}, type={device_type}")
+        log.debug(f"[FACADE] add_device called: {device_name}, type={device_type}")
 
         if device_name in self.__connected_devices:
             return True  # already known — mirrors upstream's early-return path
@@ -159,7 +159,7 @@ class MMGatewayFacade:
         to make a device "exist." This method must handle first-time
         registration itself for any previously-unseen device_name.
         """
-        # log.info(f"send_to_storage called: connector={connector_name}, data={data}")
+        log.debug(f"send_to_storage called: connector={connector_name}, data={data}")
         
         if connector_name is None or data is None:
             return Status.FAILURE
