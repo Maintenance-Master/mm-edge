@@ -1,10 +1,12 @@
 import os
-
-os.environ["TB_GW_LOGS_PATH"] = "logs"
-
 import json
 import time
+
+import logging
 import logging.config
+
+from pathlib import Path
+from logging.handlers import TimedRotatingFileHandler
 
 from threading import Event
 
@@ -24,10 +26,27 @@ from mm_edge.storage.event_storage_factory import create_event_storage
 from mm_edge.cloud.mqtt_cloud_client import MqttCloudClient
 from mm_edge.cloud.cloud_publisher_worker import CloudPublisherWorker
 
+os.environ["TB_GW_LOGS_PATH"] = "logs"
+
 os.makedirs("logs", exist_ok=True) # handers won't create the folder themselves
 
 with open("mm_edge/config/logging.json") as f:
     logging.config.dictConfig(json.load(f))
+
+Path("logs").mkdir(exist_ok=True)
+
+file_handler = TimedRotatingFileHandler(
+    filename="logs/mm-edge.log",
+    when="midnight",
+    backupCount=14,
+    encoding="utf-8",
+)
+
+file_handler.setFormatter(
+    logging.Formatter("%(asctime)s %(levelname)s: %(message)s")
+)
+
+logging.getLogger().addHandler(file_handler)
 
 logging.getLogger("pymodbus.logging").setLevel(logging.ERROR)
 

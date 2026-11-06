@@ -1,5 +1,6 @@
 import logging
 import threading
+import json
 
 from thingsboard_gateway.storage.event_storage import EventStorage
 
@@ -101,5 +102,28 @@ class CloudPublisherWorker:
 
             if not published:
                 return False
+            
+            first_reading_id, reading_count = self._get_event_summary(event)
+
+            log.info(
+                "Telemetry event published: "
+                "first_reading_id=%s readings=%d",
+                first_reading_id,
+                reading_count,
+            )
 
         return True
+
+    def _get_event_summary(self, event: str) -> tuple[str | None, int]:
+        try:
+            payload = json.loads(event)
+
+            readings = payload.get("readings", [])
+
+            if not readings:
+                return None, 0
+
+            return readings[0].get("readingId"), len(readings)
+
+        except Exception:
+            return None, 0
