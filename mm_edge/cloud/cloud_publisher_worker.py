@@ -5,6 +5,7 @@ import json
 from thingsboard_gateway.storage.event_storage import EventStorage
 
 from mm_edge.cloud.mqtt_cloud_client import MqttCloudClient
+from mm_edge.health.gateway_health import GatewayHealth
 
 log = logging.getLogger("mm_edge.cloud_publisher_worker")
 
@@ -13,10 +14,12 @@ class CloudPublisherWorker:
         self,
         event_storage: EventStorage,
         cloud_client: MqttCloudClient,
-        retry_delay_seconds: float = 3.0
+        health: GatewayHealth,
+        retry_delay_seconds: float = 3.0,
     ):
         self._event_storage = event_storage
         self._cloud_client = cloud_client
+        self._health = health
         self._retry_delay_seconds = retry_delay_seconds
 
         self._stop_event = threading.Event()
@@ -104,6 +107,8 @@ class CloudPublisherWorker:
                 return False
             
             first_reading_id, reading_count = self._get_event_summary(event)
+
+            self._health.publish_succeeded(first_reading_id)
 
             log.info(
                 "Telemetry event published: "

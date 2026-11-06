@@ -25,6 +25,7 @@ from mm_edge.diagnostics.storage_diagnostics import StorageDiagnostics
 from mm_edge.storage.event_storage_factory import create_event_storage
 from mm_edge.cloud.mqtt_cloud_client import MqttCloudClient
 from mm_edge.cloud.cloud_publisher_worker import CloudPublisherWorker
+from mm_edge.health.gateway_health import GatewayHealth
 
 os.environ["TB_GW_LOGS_PATH"] = "logs"
 
@@ -67,6 +68,8 @@ with open("mm_edge/config/modbus.json") as f:
 
 main_stop_event = Event()
 
+gateway_health = GatewayHealth()
+
 event_storage = create_event_storage(
     config=gateway_config["storage"],
     main_stop_event=main_stop_event
@@ -76,6 +79,7 @@ diagnostics_config = gateway_config.get("diagnostics", {})
 
 storage_diagnostics = StorageDiagnostics(
     event_storage=event_storage,
+    health=gateway_health,
     interval_seconds=diagnostics_config.get(
         "storage_log_interval_seconds",
         10,
@@ -86,12 +90,14 @@ cloud_config = gateway_config["cloud"]
 
 cloud_client = MqttCloudClient(
     config=cloud_config,
-    gateway_identity=gateway_identity
+    gateway_identity=gateway_identity,
+    health=gateway_health
 )
 
 cloud_publisher = CloudPublisherWorker(
     event_storage=event_storage,
     cloud_client=cloud_client,
+    health=gateway_health,
     retry_delay_seconds=cloud_config.get("retryDelaySeconds", 3)
 )
 

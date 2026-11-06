@@ -8,13 +8,15 @@ from uuid import UUID
 import paho.mqtt.client as mqtt
 
 from mm_edge.identity.gateway_identity import GatewayIdentity
+from mm_edge.health.gateway_health import GatewayHealth
 
 log = logging.getLogger("mm_edge.mqtt_cloud_client")
 
 class MqttCloudClient:
-    def __init__(self, config: dict, gateway_identity: GatewayIdentity):
+    def __init__(self, config: dict, gateway_identity: GatewayIdentity, health: GatewayHealth):
         self._config = config
         self._gateway_identity = gateway_identity
+        self._health = health
 
         self._host = config["host"]
         self._port = int(config.get("port", 8883))
@@ -155,6 +157,8 @@ class MqttCloudClient:
     ):
         if reason_code == 0:
             self._connected.set()
+            self._health.cloud_connected()
+
             log.info("Connected to MM MQTT broker: topic=%s", self._topic)
 
         else:
@@ -170,5 +174,6 @@ class MqttCloudClient:
         properties,
     ):
         self._connected.clear()
+        self._health.cloud_disconnected()
 
         log.warning("Disconnected from MM MQTT broker: reason=%s", reason_code)

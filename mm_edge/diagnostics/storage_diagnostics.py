@@ -1,6 +1,8 @@
 import logging
 import threading
 
+from mm_edge.health.gateway_health import GatewayHealth
+
 from thingsboard_gateway.storage.event_storage import EventStorage
 
 log = logging.getLogger("mm_edge.storage_diagnostics")
@@ -9,10 +11,12 @@ class StorageDiagnostics:
     def __init__(
         self,
         event_storage: EventStorage,
+        health: GatewayHealth,
         interval_seconds: int = 10
     ):
         self._event_storage = event_storage
         self._interval_seconds = interval_seconds
+        self._health = health
 
         self._stop_event = threading.Event()
 
@@ -35,13 +39,30 @@ class StorageDiagnostics:
 
     def _run(self) -> None:
         while not self._stop_event.wait(self._interval_seconds):
-            backlog = self._safe_get_backlog()
-
-            log.info("[STORAGE] pending_events=%s", backlog)
+            self._safe_get_backlog()
 
     def _safe_get_backlog(self):
         try:
-            return self._event_storage.len()
+            backlog = self._event_storage.len()
+
+            self._health.set_storage_backlog(backlog)
+
+            snapshot = self._health.snapshot()
+
+            log.info(
+                "[HEALTH] cloud_connected=%s "
+                "reconnects=%d "
+                "backlog=%d "
+                "last_publish=%s "
+                "last_reading_id=%s",
+                snapshot.cloud_connected,
+                snapshot.reconnect_count,
+                snapshot.storage_backlog,
+                snapshot.last_publish_at,
+                snapshot.last_published_reading_id,
+            )
+
+            return backlog
 
         except Exception:
             log.exception("Failed to read storage backlog.")
