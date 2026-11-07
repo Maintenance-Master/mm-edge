@@ -23,7 +23,8 @@
     "keepAliveSeconds": 60,
     "publishTimeoutSeconds": 10,
     "retryDelaySeconds": 3,
-    "passwordEnvironmentVariable": "MM_MQTT_PASSWORD"
+    "passwordEnvironmentVariable": "MM_MQTT_PASSWORD",
+    "heartbeatIntervalSeconds": 10
   },
 
   "diagnostics": {

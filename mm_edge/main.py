@@ -26,6 +26,7 @@ from mm_edge.storage.event_storage_factory import create_event_storage
 from mm_edge.cloud.mqtt_cloud_client import MqttCloudClient
 from mm_edge.cloud.cloud_publisher_worker import CloudPublisherWorker
 from mm_edge.health.gateway_health import GatewayHealth
+from mm_edge.health.heartbeat_worker import HeartbeatWorker
 
 os.environ["TB_GW_LOGS_PATH"] = "logs"
 
@@ -101,6 +102,13 @@ cloud_publisher = CloudPublisherWorker(
     retry_delay_seconds=cloud_config.get("retryDelaySeconds", 3)
 )
 
+heartbeat_worker = HeartbeatWorker(
+    cloud_client=cloud_client,
+    health=gateway_health,
+    gateway_identity=gateway_identity,
+    interval_seconds=cloud_config.get("heartbeatIntervalSeconds", 10)
+)
+
 incoming_queue = IncomingTelemetryQueue()
 
 converter = ConvertedDataConverter()
@@ -126,6 +134,8 @@ connector.name = "Modbus Connector"
 cloud_client.start()
 cloud_publisher.start()
 
+heartbeat_worker.start()
+
 storage_diagnostics.start()
 telemetry_worker.start()
 
@@ -144,6 +154,8 @@ finally:
     connector.close()
 
     telemetry_worker.stop()
+
+    heartbeat_worker.stop()
 
     cloud_publisher.stop()
 

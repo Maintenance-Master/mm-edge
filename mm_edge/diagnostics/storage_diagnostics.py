@@ -49,7 +49,7 @@ class StorageDiagnostics:
 
             snapshot = self._health.snapshot()
 
-            log.info(
+            log.debug(
                 "[HEALTH] cloud_connected=%s "
                 "reconnects=%d "
                 "backlog=%d "

@@ -41,6 +41,8 @@ class MqttCloudClient:
 
         self._topic = self._build_telemetry_topic()
 
+        self._heartbeat_topic = self._topic.rsplit("/", 1)[0] + "/heartbeat"
+
         self._connected = threading.Event()
 
         self._client = mqtt.Client(
@@ -93,13 +95,19 @@ class MqttCloudClient:
 
         self._connected.clear()
 
-    def publish(self, payload: str) -> bool:
+    def publish_telemetry(self, payload: str) -> bool:
+        return self._publish_to_topic(topic=self._topic, payload=payload)
+
+    def publish_heartbeat(self, payload: str) -> bool:
+        return self._publish_to_topic(topic=self._heartbeat_topic, payload=payload)
+
+    def _publish_to_topic(self, topic: str, payload: str) -> bool:
         if not self.is_connected:
             return False
 
         try:
             result = self._client.publish(
-                topic=self._topic,
+                topic=topic,
                 payload=payload,
                 qos=self._qos,
                 retain=False
@@ -123,6 +131,7 @@ class MqttCloudClient:
         except Exception:
             log.exception("MQTT publish failed")
             return False
+
 
     def _configure_tls(self) -> None:
         ca_certificate = self._config["caCertificate"]

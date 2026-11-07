@@ -101,7 +101,7 @@ class CloudPublisherWorker:
             if not self._cloud_client.is_connected:
                 return False
 
-            published = self._cloud_client.publish(event)
+            published = self._cloud_client.publish_telemetry(event)
 
             if not published:
                 return False
